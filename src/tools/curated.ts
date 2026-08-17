@@ -241,12 +241,14 @@ export const CURATED_TOOLS: CuratedSpec[] = [
   },
   {
     name: "ir_whoami",
-    operationId: "getCurrentUser",
+    operationId: "getProfile",
     title: "Who am I",
-    description: "Return the authenticated user identity and active group for the current token.",
-    inputSchema: {},
+    description:
+      "Return the authenticated user's profile and active group for the current token. " +
+      "Uses /api/profile so it works with personal API tokens (not only JWT sessions).",
+    inputSchema: { response_format: RF },
     annotations: READ,
-    map: () => ({ operationId: "getCurrentUser" }),
+    map: (a) => ({ operationId: "getProfile", response_format: a.response_format }),
   },
 
   // ---- Heartbeats (no operationId in spec; use synthesized ids) ----
