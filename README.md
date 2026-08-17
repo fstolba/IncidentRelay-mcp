@@ -16,14 +16,29 @@ It exposes IncidentRelay's **entire REST API (279 operations)** to MCP clients
 The server never modifies IncidentRelay. It is a pure REST client that
 authenticates with a bearer token you provide.
 
-## Install
+## Run
+
+No install needed — run it with `npx` (Node.js ≥ 20):
 
 ```bash
-npm install
-npm run build
+# from GitHub (works today)
+IR_BASE_URL=https://incidentrelay.example.com IR_TOKEN=<token> \
+  npx -y github:NikGariel/IncidentRelay-mcp
+
+# from npm (after the package is published)
+IR_BASE_URL=https://incidentrelay.example.com IR_TOKEN=<token> \
+  npx -y incidentrelay-mcp
 ```
 
-Requires Node.js ≥ 20.
+`npx` builds the package automatically on first run (a `prepare` script compiles
+TypeScript), so no separate build step is required.
+
+### From source
+
+```bash
+npm install   # runs the build via the prepare script
+npm start
+```
 
 ## Configure
 
@@ -52,14 +67,15 @@ snapshot and logs a warning.
 
 ## Use with Claude Desktop / Claude Code (stdio)
 
-Add to your MCP client config (e.g. `claude_desktop_config.json`):
+Add to your MCP client config (e.g. `claude_desktop_config.json`). The `npx`
+form is the usual way to wire up an MCP server:
 
 ```json
 {
   "mcpServers": {
     "incidentrelay": {
-      "command": "node",
-      "args": ["/absolute/path/to/incidentrelay-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "github:NikGariel/IncidentRelay-mcp"],
       "env": {
         "IR_BASE_URL": "https://incidentrelay.example.com",
         "IR_TOKEN": "<personal-api-token>"
@@ -69,11 +85,15 @@ Add to your MCP client config (e.g. `claude_desktop_config.json`):
 }
 ```
 
+Once published to npm, swap the args to `["-y", "incidentrelay-mcp"]`. To run a
+local checkout instead, use `"command": "node"` with
+`"args": ["/absolute/path/to/incidentrelay-mcp/dist/index.js"]`.
+
 ## Use over HTTP (Streamable HTTP)
 
 ```bash
 IR_BASE_URL=https://incidentrelay.example.com IR_TOKEN=... \
-  node dist/index.js --transport http --port 3000
+  npx -y github:NikGariel/IncidentRelay-mcp --transport http --port 3000
 # serves MCP at http://127.0.0.1:3000/mcp
 ```
 
