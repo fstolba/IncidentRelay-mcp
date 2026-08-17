@@ -1,0 +1,52 @@
+[
+  {
+    "prompt": "Acknowledge the newest firing critical alert for team infra and add the comment 'investigating'.",
+    "expected_tools": ["ir_list_alerts", "ir_ack_alert", "ir_comment_alert"]
+  },
+  {
+    "prompt": "Who is on call for the payments team right now?",
+    "expected_tools": ["ir_list_teams", "ir_who_is_on_call"]
+  },
+  {
+    "prompt": "Silence disk-space alerts on host1 for the next 2 hours.",
+    "expected_tools": ["ir_create_silence"]
+  },
+  {
+    "prompt": "Open a manual incident titled 'Checkout latency spike' at high severity.",
+    "expected_tools": ["ir_create_incident"]
+  },
+  {
+    "prompt": "Delete route 5.",
+    "expected_tools": ["ir_call"],
+    "notes": "Must require confirm:true; the agent should surface the destructive preview before retrying with confirm."
+  },
+  {
+    "prompt": "Show me the request body needed to create a rotation.",
+    "expected_tools": ["ir_list_operations", "ir_describe_operation"]
+  },
+  {
+    "prompt": "Add user 12 as a responder to incident 340.",
+    "expected_tools": ["ir_add_incident_responder"]
+  },
+  {
+    "prompt": "Schedule a maintenance window called 'DB upgrade' for tomorrow 01:00-03:00 UTC.",
+    "expected_tools": ["ir_create_maintenance_window"]
+  },
+  {
+    "prompt": "Which teams have on-call coverage gaps right now?",
+    "expected_tools": ["ir_oncall_health"]
+  },
+  {
+    "prompt": "Send a heartbeat ping for token hb_abc123.",
+    "expected_tools": ["ir_send_heartbeat"]
+  },
+  {
+    "prompt": "Send a test notification through the 'oncall-slack' channel.",
+    "expected_tools": ["ir_list_channels", "ir_list_operations", "ir_call"],
+    "notes": "Long-tail: testChannel has no curated tool; the agent must discover it via the gateway."
+  },
+  {
+    "prompt": "Resolve alert group 512 and note the root cause was a bad deploy.",
+    "expected_tools": ["ir_resolve_alert"]
+  }
+]
