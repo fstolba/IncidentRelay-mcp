@@ -10,6 +10,9 @@ export interface ToolCtx {
 }
 
 export interface ToolResult {
+  // Index signature keeps this structurally compatible with the SDK's
+  // CallToolResult (which carries an open `[x: string]: unknown`).
+  [x: string]: unknown;
   content: { type: "text"; text: string }[];
   structuredContent?: Record<string, unknown>;
   isError?: boolean;
