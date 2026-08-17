@@ -67,15 +67,17 @@ snapshot and logs a warning.
 
 ## Use with Claude Desktop / Claude Code (stdio)
 
-Add to your MCP client config (e.g. `claude_desktop_config.json`). The `npx`
-form is the usual way to wire up an MCP server:
+Add to your MCP client config (e.g. `claude_desktop_config.json`).
+
+**Recommended — run the prebuilt binary directly** (starts in <0.5s, so it never
+hits the client's startup timeout):
 
 ```json
 {
   "mcpServers": {
     "incidentrelay": {
-      "command": "npx",
-      "args": ["-y", "github:NikGariel/IncidentRelay-mcp"],
+      "command": "node",
+      "args": ["/absolute/path/to/incidentrelay-mcp/dist/index.js"],
       "env": {
         "IR_BASE_URL": "https://incidentrelay.example.com",
         "IR_TOKEN": "<personal-api-token>"
@@ -85,9 +87,22 @@ form is the usual way to wire up an MCP server:
 }
 ```
 
-Once published to npm, swap the args to `["-y", "incidentrelay-mcp"]`. To run a
-local checkout instead, use `"command": "node"` with
-`"args": ["/absolute/path/to/incidentrelay-mcp/dist/index.js"]`.
+Build it once with `npm install && npm run build` (or `npm install -g .`).
+
+**Alternative — `npx`.** Once published to npm:
+
+```json
+{ "command": "npx", "args": ["-y", "incidentrelay-mcp"], "env": { "…": "…" } }
+```
+
+> ⚠️ Avoid `npx -y github:…` in a client config: its **first** run clones the
+> repo, installs dependencies, and compiles TypeScript, which can exceed an MCP
+> client's ~30s connection timeout on a cold cache. Use the prebuilt binary (or
+> the npm form after publishing) for a client that spawns the server on demand.
+
+The server itself starts instantly regardless of network: it loads a bundled
+OpenAPI snapshot synchronously, then refreshes the catalog from the live server
+in the background.
 
 ## Use over HTTP (Streamable HTTP)
 
