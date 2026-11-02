@@ -117,7 +117,7 @@ The HTTP transport is stateless (one server per request), binds to
 
 ## Tools
 
-### Gateway (cover all 279 operations)
+### Gateway (cover all 294 operations)
 
 | Tool | Purpose |
 |---|---|
@@ -131,14 +131,19 @@ Typical flow: `ir_list_operations` → `ir_describe_operation` → `ir_call`.
 
 Alerts: `ir_list_alerts`, `ir_get_alert`, `ir_ack_alert`, `ir_resolve_alert`,
 `ir_comment_alert` ·
-Incidents: `ir_list_incidents`, `ir_get_incident`, `ir_create_incident`,
-`ir_add_incident_responder`, `ir_set_incident_priority` ·
+Incidents (v2.3 “first-class incidents”): `ir_list_incidents`, `ir_get_incident`,
+`ir_create_incident` ·
 On-call: `ir_who_is_on_call`, `ir_oncall_health`, `ir_list_rotations`,
 `ir_create_rotation_override` ·
 Silences: `ir_list_silences`, `ir_create_silence`, `ir_remove_silence` ·
 Maintenance: `ir_list_maintenance_windows`, `ir_create_maintenance_window` ·
 Context: `ir_list_teams`, `ir_list_routes`, `ir_list_channels`, `ir_whoami` ·
 Heartbeats: `ir_list_heartbeats`, `ir_send_heartbeat`.
+
+> Note: the bundled OpenAPI snapshot is regenerated from the target
+> IncidentRelay's `/api/openapi.json`; on v2.3 the alert API lives under
+> `/api/alert-groups` and incidents have a new “first-class” API (no responder
+> or priority-write endpoints — those old `ir_*` tools were removed).
 
 ## Safety
 

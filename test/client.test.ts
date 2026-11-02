@@ -30,9 +30,41 @@ describe("buildUrl", () => {
       "https://ir.example.com/api/alerts/7/ack?status=firing&status=acknowledged&q=disk"
     );
   });
+
+  it("rejects paths that do not start with a slash", () => {
+    expect(() => buildUrl("https://ir.example.com", "@evil.example/x")).toThrow(IRError);
+    expect(() => buildUrl("https://ir.example.com", ".evil.example/x")).toThrow(IRError);
+    expect(() => buildUrl("https://ir.example.com", "api/alerts")).toThrow(IRError);
+  });
+
+  it("keeps slash-prefixed tricky paths on the configured host", () => {
+    expect(() => buildUrl("https://ir.example.com", "/@evil.example/x")).not.toThrow();
+    expect(buildUrl("https://ir.example.com", "/@evil.example/x")).toBe(
+      "https://ir.example.com/@evil.example/x"
+    );
+    expect(() => buildUrl("https://ir.example.com", "//evil.example/x")).not.toThrow();
+    expect(new URL(buildUrl("https://ir.example.com", "//evil.example/x")).host).toBe("ir.example.com");
+    expect(() => buildUrl("https://ir.example.com", "/{p}", { p: "@evil.example" })).not.toThrow();
+    expect(new URL(buildUrl("https://ir.example.com", "/{p}", { p: "@evil.example" })).host).toBe(
+      "ir.example.com"
+    );
+  });
+
+  it("keeps a base URL with a path prefix working", () => {
+    expect(buildUrl("https://ir.example.com/ir", "/api/alerts")).toBe("https://ir.example.com/ir/api/alerts");
+  });
 });
 
 describe("IRClient", () => {
+  it("never sends the token to another host via a crafted path", async () => {
+    // onUnhandledRequest: "error" would fail the test if any request were attempted.
+    const client = new IRClient(cfg);
+    await expect(client.call({ method: "GET", path: "@evil.example/steal" })).rejects.toMatchObject({
+      status: 0,
+      message: expect.stringContaining("must start with"),
+    });
+  });
+
   it("sends bearer auth and returns parsed data", async () => {
     server.use(
       http.get("https://ir.example.com/api/alerts", ({ request }) => {

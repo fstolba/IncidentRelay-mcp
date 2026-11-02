@@ -76,7 +76,7 @@ describe("bundled snapshot", () => {
   it("parses and contains the known on-call operations", () => {
     const cat = build2(loadSnapshotSpec());
     expect(cat.size).toBeGreaterThan(250);
-    for (const id of ["listAlertGroups", "acknowledgeAlertGroup", "resolveAlertGroup", "listIncidents", "createSilence"]) {
+    for (const id of ["listAlertGroups", "acknowledgeAlertGroup", "resolveAlertGroup", "get_api_incidents", "createSilence"]) {
       expect(cat.get(id), id).toBeDefined();
     }
   });

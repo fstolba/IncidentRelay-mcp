@@ -64,7 +64,25 @@ export function buildUrl(
       p = p.replace(`{${k}}`, encodeURIComponent(String(v)));
     }
   }
+  // Security: `path` can come from the model (ir_call with method+path). A value
+  // such as "@evil.example/x" or ".evil.example/x" would otherwise turn
+  // `baseUrl + path` into a different host and leak the bearer token to it.
+  if (!p.startsWith("/")) {
+    throw new IRError({
+      status: 0,
+      message: `Refusing request: path must start with "/" (got ${JSON.stringify(path)}).`,
+      suggestion: "Pass a relative API path such as /api/alerts, or use an operationId.",
+    });
+  }
+  const base = new URL(baseUrl);
   const url = new URL(baseUrl + p);
+  if (url.origin !== base.origin || url.username !== base.username || url.password !== base.password) {
+    throw new IRError({
+      status: 0,
+      message: `Refusing request: path ${JSON.stringify(path)} would leave the configured IR_BASE_URL.`,
+      suggestion: "Only paths on the configured IncidentRelay server can be called.",
+    });
+  }
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v === undefined || v === null) continue;

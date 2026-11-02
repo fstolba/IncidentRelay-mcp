@@ -33,7 +33,7 @@ describe("curated tool specs", () => {
 
   it("ir_ack_alert maps args to the ack operation", async () => {
     server.use(
-      http.post("https://ir.example.com/api/alerts/42/ack", () => HttpResponse.json({ status: "acknowledged" }))
+      http.post("https://ir.example.com/api/alert-groups/42/acknowledge", () => HttpResponse.json({ status: "acknowledged" }))
     );
     const tool = CURATED_TOOLS.find((t) => t.name === "ir_ack_alert")!;
     const r = await executeOperation(ctx(), tool.map({ alert_id: 42 }));
@@ -42,7 +42,7 @@ describe("curated tool specs", () => {
 
   it("ir_list_alerts passes filters as query", async () => {
     server.use(
-      http.get("https://ir.example.com/api/alerts", ({ request }) => {
+      http.get("https://ir.example.com/api/alert-groups", ({ request }) => {
         const url = new URL(request.url);
         expect(url.searchParams.get("status")).toBe("firing");
         return HttpResponse.json({ items: [] });
@@ -50,6 +50,51 @@ describe("curated tool specs", () => {
     );
     const tool = CURATED_TOOLS.find((t) => t.name === "ir_list_alerts")!;
     const r = await executeOperation(ctx(), tool.map({ status: "firing" }));
+    expect(r.isError).toBeFalsy();
+  });
+
+  it("ir_comment_alert posts to the v2.3 comment endpoint with a body field", async () => {
+    server.use(
+      http.post("https://ir.example.com/api/alert-groups/42/comments", async ({ request }) => {
+        expect(await request.json()).toEqual({ body: "investigating" });
+        return HttpResponse.json({ id: 1 });
+      })
+    );
+    const tool = CURATED_TOOLS.find((t) => t.name === "ir_comment_alert")!;
+    const r = await executeOperation(ctx(), tool.map({ alert_id: 42, comment: "investigating" }));
+    expect(r.isError).toBeFalsy();
+  });
+
+  it("ir_ack_alert posts to the v2.3 acknowledge endpoint", async () => {
+    server.use(
+      http.post("https://ir.example.com/api/alert-groups/9/acknowledge", async ({ request }) => {
+        expect(await request.json()).toEqual({ user_id: 2 });
+        return HttpResponse.json({ status: "acknowledged" });
+      })
+    );
+    const tool = CURATED_TOOLS.find((t) => t.name === "ir_ack_alert")!;
+    const r = await executeOperation(ctx(), tool.map({ alert_id: 9, user_id: 2 }));
+    expect(r.isError).toBeFalsy();
+  });
+
+  it("ir_create_incident posts to /api/incidents with title and team_id", async () => {
+    server.use(
+      http.post("https://ir.example.com/api/incidents", async ({ request }) => {
+        expect(await request.json()).toEqual({ title: "Checkout latency spike", team_id: 1, priority: "p1" });
+        return HttpResponse.json({ id: 340 });
+      })
+    );
+    const tool = CURATED_TOOLS.find((t) => t.name === "ir_create_incident")!;
+    const r = await executeOperation(ctx(), tool.map({ title: "Checkout latency spike", team_id: 1, priority: "p1" }));
+    expect(r.isError).toBeFalsy();
+  });
+
+  it("ir_list_incidents uses the v2.3 synthesized operation id", async () => {
+    server.use(
+      http.get("https://ir.example.com/api/incidents", () => HttpResponse.json({ items: [] }))
+    );
+    const tool = CURATED_TOOLS.find((t) => t.name === "ir_list_incidents")!;
+    const r = await executeOperation(ctx(), tool.map({}));
     expect(r.isError).toBeFalsy();
   });
 
